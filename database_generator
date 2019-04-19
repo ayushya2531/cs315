@@ -1,0 +1,453 @@
+
+create table Meta_Campus_Role(
+  Role_In_Campus_No INT NOT NULL,
+  Role_Name Varchar(140) NOT NULL,
+  PRIMARY KEY(Role_In_Campus_No)
+);
+
+create table Meta_Category(
+  Category_No INT NOT NULL,
+  Category Varchar(140) NOT NULL,
+  PRIMARY KEY(Category_No)
+);
+
+create table Meta_Fac_Qualifications (
+  Designation_No INT NOT NULL,
+  Designation_Name VARCHAR(140) NOT NULL,
+  PRIMARY KEY (Designation_No)
+);
+
+create table Meta_Staff_Qualifications (
+  Designation_No INT NOT NULL,
+  Designation_Name VARCHAR(140) NOT NULL,
+  PRIMARY KEY (Designation_No)
+);
+
+create table people (
+  Uniq_Id INT AUTO_INCREMENT,
+  Name VARCHAR(140) NOT NULL,
+  DOB DATE NOT NULL,
+  Father Varchar(140) NOT NULL,
+  Email Varchar(140) NOT NULL,
+  Role_In_Campus_No INT NOT NULL,
+  Phone_No Varchar(10),
+  Gender Varchar(1) NOT NULL,
+  Category_No INT NOT NULL,
+  Primary Key (Uniq_Id),
+  FOREIGN KEY(Category_No) references Meta_Category(Category_No),
+  FOREIGN KEY(Role_In_Campus_No) references Meta_Campus_Role(Role_In_Campus_No)
+);
+
+create table Department
+(Dept_ID int primary key,
+DeptName varchar(250) not null,
+Location varchar(250));
+
+create table Program
+(Prog_ID int primary key,
+PType varchar(10) not null,
+MinDuration int,
+MaxDuration int,
+AvgDuration int,
+Dept_ID int not null,
+Second_Dept_ID int,
+Foreign key(Dept_ID) References Department(Dept_ID),
+Foreign key(Second_Dept_ID) References Department(Dept_ID));
+
+
+create table students (
+  Roll_No INT NOT NULL,
+  Uniq_Id INT,
+  Parental_Income INT NOT NULL,
+  academic_probation_status varchar(30) default 'None',
+  cpi numeric(4, 2),
+  credits int,
+  Dept_ID int NOT NULL,
+  Prog_ID int NOT NULL,
+  check (
+    academic_probation_status in (
+      'None',
+      'Warning',
+      'Academic Probation',
+      'Appealing against Termination',
+      'Terminated'
+    )
+  ),
+  check (cpi <= 10.00),
+  Primary Key (Roll_No),
+  FOREIGN KEY(Uniq_Id) references people(Uniq_Id),
+  Foreign key(Dept_ID) References Department(Dept_ID),
+  Foreign key(Prog_ID) References Program(Prog_ID)
+);
+
+create table Student_Residence (
+  Hall_No INT NOT NULL,
+  Room_No INT NOT NULL,
+  Roll_No INT NOT NULL,
+  PRIMARY KEY(Hall_No, Room_No),
+  FOREIGN KEY(Roll_No) references students(Roll_No)
+);
+
+create table Faculty (
+  Faculty_Id INT NOT NULL,
+  Dept_ID int,
+  Uniq_Id INT,
+  Designation_No INT NOT NULL,
+  Joining_Date DATE NOT NULL,
+  PRIMARY KEY (Faculty_Id),
+  FOREIGN KEY(Designation_No) references Meta_Fac_Qualifications(Designation_No),
+  FOREIGN KEY(Uniq_Id) references people(Uniq_Id),
+  Foreign key(Dept_ID) References Department(Dept_ID)
+
+);
+
+create table Staff (
+  Staff_Id INT NOT NULL,
+  Uniq_Id INT,
+  Designation_No INT NOT NULL,
+  Joining_Date DATE NOT NULL,
+  PRIMARY KEY (Staff_Id),
+  FOREIGN KEY(Designation_No) references Meta_Staff_Qualifications(Designation_No),
+  FOREIGN KEY(Uniq_Id) references people(Uniq_Id)
+);
+
+create table Faculty_Residence (
+  Residence_No VARCHAR(140) NOT NULL,
+  Quarter_Type INT NOT NULL,
+  Faculty_Id INT,
+  PRIMARY KEY(Residence_No, Quarter_Type),
+  FOREIGN KEY(Faculty_Id) references Faculty(Faculty_Id)
+);
+
+create table Institute_Positions (
+  Position_Id INT NOT NULL,
+  Position_Name VARCHAR(140),
+  Office VARCHAR(140) NOT NULL,
+  Fac_Staff_Pos INT NOT NULL,
+  Pre_Req INT NOT NULL,
+  PRIMARY KEY (Position_Id)
+);
+
+create table Positions (
+  Position_Id INT NOT NULL,
+  Position VARCHAR(140),
+  Body VARCHAR(140) NOT NULL,
+  Post_Hierarchy INT NOT NULL,
+  PRIMARY KEY (Position_Id)
+);
+
+create table Institute_Admin_Fac (
+  Institute_Position_Id INT Not NUll,
+  Faculty_Id INT NOT NULL,
+  PRIMARY KEY (Institute_Position_Id, Faculty_Id),
+  FOREIGN KEY(Institute_Position_Id) references Institute_Positions(Position_Id),
+  FOREIGN KEY(Faculty_Id) references Faculty(Faculty_Id)
+);
+
+create table Institute_Admin_Staff (
+  Institute_Position_Id INT Not NUll,
+  Num_Relations INT AUTO_INCREMENT,
+  Staff_Id INT NOT NULL,
+  PRIMARY KEY (Num_Relations),
+  FOREIGN KEY(Institute_Position_Id) references Institute_Positions(Position_Id),
+  FOREIGN KEY(Staff_Id) references Staff(Staff_Id)
+);
+
+
+
+
+
+
+
+create table Student_Admin (
+  Roll_No INT Not NULL,
+
+  Position_Id INT Not NUll,
+  Num_Relations INT AUTO_INCREMENT,
+  PRIMARY KEY (Num_Relations),
+  FOREIGN KEY(Roll_No) references students(Roll_No),
+  FOREIGN KEY(Position_Id) references Positions(Position_Id)
+);
+
+create table Mess_Mgmt (
+  Hall_No INT NOT NULL,
+  Roll_No INT NOT NULL,
+  Meal_Date DATE NOT NULL,
+  Meal_No INT NOT NULL,
+  Amount INT NOT NULL,
+  PRIMARY KEY(Roll_No, Meal_Date, Meal_No),
+  FOREIGN KEY(Roll_No) references students(Roll_No)
+);
+
+
+
+
+
+create table Meta_Course_Type
+(
+  CType varchar(5) NOT NULL,
+  CType_No int NOT NULL,
+  Primary key(CType_No)
+);
+
+create table Courses
+(CourseID int primary key,
+CCode varchar(10) not null unique,
+CName varchar(50) not null unique,
+Dept_ID int not null,
+CType_No int,
+CWebsite text,
+CourseCredits int not null default 0,
+ThesisCredits int not null default 0,
+PrefGType varchar(50),
+Foreign key(CType_No) References Meta_Course_Type(CType_No)
+);
+
+create table Prerequsites
+(
+CourseID int not null,
+PrereqID int not null,
+primary key(CourseID, PrereqID),
+Foreign key(CourseID) References Courses(CourseID),
+Foreign key(PrereqID) References Courses(CourseID)
+);
+
+Create table Template
+(
+Prog_ID int not null,
+SemesterID int not null,
+CourseID int Default 0,
+CType_No int not null,
+CourseCredits int,
+ThesisCredits int,
+primary key(Prog_ID, SemesterID, CType_No, CourseID ),
+Foreign key(Prog_ID) References Program(Prog_ID),
+Foreign key(CourseID) References Courses(CourseID),
+Foreign key(CType_No) References Meta_Course_Type(CType_No)
+);
+
+create table Minor
+(Roll_No int not null,
+Dept_ID int not null,
+Specialization varchar(50), 
+primary key(Roll_No, Dept_ID, Specialization),
+Foreign key(Roll_No) References students(Roll_No),
+Foreign key(Dept_ID) References Department(Dept_ID)
+);
+
+create table Supervisor
+(Roll_No int primary key,
+Faculty_ID int not null,
+Foreign key(Roll_No) References students(Roll_No),
+Foreign key(Faculty_ID) References Faculty(Faculty_ID)
+);
+
+create table AssociateSupervisor
+(Roll_No int primary key ,
+Faculty_ID int not null,
+Foreign key(Roll_No) References students(Roll_No),
+Foreign key(Faculty_ID) References Faculty(Faculty_ID));
+
+
+create table CourseOffered
+(
+CourseID int not null,
+Year year not null,
+Semester int not null,
+Slot varchar(20),
+Venue varchar(50),
+Faculty_ID int not null, 
+Primary key(CourseID, Year, Semester),
+Foreign key(CourseID) References Courses(CourseID));
+
+create table TA
+(
+Roll_No int primary key,
+CourseID int not null,
+Year year not null,
+Semester int not null,
+Foreign key(CourseID, Year, Semester) References CourseOffered(CourseID, Year, Semester),
+#Foreign key(CourseID) References Courses(CourseID),
+#Foreign key(Semester) References CourseOffered(Semester),
+#Foreign key(Year) References CourseOffered(Year),
+Foreign key(Roll_No) References students(Roll_No)
+);
+
+create table Transcript
+(Roll_No int not null,
+CourseID int not null,
+Year year not null,
+Semester int not null,
+Grade varchar(1) not null default 'I',
+Primary key(Roll_No, CourseID, Year, Semester),
+Foreign key(CourseID, Year, Semester) References CourseOffered(CourseID, Year, Semester),
+#Foreign key(CourseID) References Courses(CourseID),
+#Foreign key(Semester) References CourseOffered(Semester),
+#Foreign key(Year) References CourseOffered(Year),
+Foreign key(Roll_No) References students(Roll_No)
+);
+
+create table CurrentRegistration
+(Roll_No int not null,
+CourseID int not null, 
+Year year not null,
+Semester int not null, 
+GradeType varchar(10) default 'normal',
+LoadStatus varchar(10) default 'normal',
+PreqWaiver varchar(1) default 'n',
+Primary Key(Roll_No, CourseID, Year, Semester),
+Foreign key(CourseID, Year, Semester) References CourseOffered(CourseID, Year, Semester),
+#Foreign key(CourseID) References Courses(CourseID),
+#Foreign key(Semester) References CourseOffered(Semester),
+#Foreign key(Year) References CourseOffered(Year),
+Foreign key(Roll_No) References students(Roll_No));
+
+create table course_request(
+roll_no int ,
+CCode varchar(10) unique,
+course_as varchar(10), /*{OE,DE,HSS etc}*/
+course_type varchar(10), /*{Fresh,Repeat,Extra(S/X) etc}*/
+academic_year char(7) unique,
+semester varchar(10) unique,
+prereq_waiver varchar(2), 
+status varchar(10),
+foreign key (roll_no) references students(roll_no),
+foreign key (CCode) references Courses(CCode),
+primary key(roll_no, CCode)
+);
+
+
+create table administrative_reg(
+roll_no int primary key,
+academic_year char(7) unique,
+semester varchar(6) unique,
+fees int,
+fee_payment_status varchar(10),
+DOSA_sign_status varchar (10),
+foreign key (roll_no) references students(roll_no)
+);
+
+
+
+create table late_reg(
+roll_no int primary key,
+sugc_status varchar(10),
+reg_status varchar(10),
+fine int,
+foreign key (roll_no) references students(roll_no) 
+);
+
+
+
+CREATE TABLE Funds (
+Transaction_No INT NOT NULL,
+Amount Varchar(40) NOT NULL,
+Name_of_Donator Varchar(20) NOT NULL,
+Project_Name Varchar(20) NOT NULL,
+
+PRIMARY KEY (Transaction_No)
+);
+
+CREATE TABLE Which (
+Staff_Id int NOT NULL,
+Transaction_No INT NOT NULL,
+PRIMARY KEY (Staff_Id,Transaction_No),
+FOREIGN KEY(Staff_Id) REFERENCES Staff(Staff_Id),
+FOREIGN KEY(Transaction_No) REFERENCES Funds(Transaction_No)
+);
+
+CREATE TABLE Organization
+(
+Organization_Name varchar(255) NOT NULL PRIMARY KEY, 
+Point_of_Contact varchar(255) UNIQUE,
+Email varchar(60),
+Contact_no int,
+Address varchar(60),
+IITK_corrospondent varchar(255)
+);
+
+CREATE TABLE MOU
+(
+Name varchar(255) ,
+#Point_of_Contact varchar(255) ,
+Point_of_Contact_IITK varchar(255),
+Signed_on DATE NOT NULL ,
+Valid_upto DATE NOT NULL ,
+Type varchar(255) NOT NULL ,
+FOREIGN KEY(Name) REFERENCES Organization(Organization_Name),
+#FOREIGN KEY(Point_of_Contact) REFERENCES Organization(Point_of_Contact),
+PRIMARY KEY (Name, Signed_on, Valid_upto, type)
+);
+
+
+CREATE TABLE Labs (
+Lab_Name VARCHAR(40) NOT NULL,
+Faculty_Id int,
+Dept_ID int,
+Staff_Id int,
+PRIMARY KEY (Lab_Name),
+FOREIGN KEY(Faculty_Id) REFERENCES Faculty(Faculty_Id),
+FOREIGN KEY(Staff_Id) REFERENCES Staff(Staff_Id),
+FOREIGN KEY(Dept_ID) REFERENCES Department(Dept_ID)
+);
+
+
+
+
+CREATE TABLE Projects (
+Project_Name VARCHAR(40) NOT NULL,
+Type VARCHAR(40) NOT NULL,
+
+PRIMARY KEY (Project_Name)
+);
+
+CREATE TABLE Patent_and_Publications (
+Patent_Name VARCHAR(40) NOT NULL PRIMARY KEY
+);
+
+
+CREATE TABLE Project_to_Patent (
+Patent_Name VARCHAR(40) NOT NULL,
+Project_Name VARCHAR(40) NOT NULL,
+FOREIGN KEY(Project_Name) REFERENCES Projects(Project_Name),
+FOREIGN KEY(Patent_Name) REFERENCES Patent_and_Publications(Patent_Name)
+);
+
+
+CREATE TABLE Alloted (
+Staff_Id int NOT NULL PRIMARY KEY,
+Lab_Name VARCHAR(40) NOT NULL,
+FOREIGN KEY(Staff_Id) REFERENCES Staff(Staff_Id),
+FOREIGN KEY(Lab_Name) REFERENCES Labs(Lab_Name)
+);
+
+
+CREATE TABLE Signed_By (
+Institute_Position_Id INT Not NUll,
+Faculty_Id INT NOT NULL,
+Project_Name VARCHAR(40) NOT NULL,
+FOREIGN KEY(Institute_Position_Id, Faculty_Id) REFERENCES Institute_Admin_Fac(Institute_Position_Id, Faculty_Id),
+FOREIGN KEY(Project_Name) REFERENCES Projects(Project_Name)
+); 
+
+
+CREATE TABLE Funded_By (
+Organization_Name VARCHAR(40) NOT NULL,
+Project_Name VARCHAR(40) NOT NULL,
+FOREIGN KEY(Project_Name) REFERENCES Projects(Project_Name),
+FOREIGN KEY(Organization_Name) REFERENCES Organization(Organization_Name)
+);
+
+
+CREATE TABLE Patent_By(
+Uniq_Id int,
+Patent_Name VARCHAR(40) NOT NULL PRIMARY KEY,
+FOREIGN KEY(Patent_Name) REFERENCES Patent_and_Publications(Patent_Name),
+FOREIGN KEY(Uniq_Id) REFERENCES people(Uniq_Id));
+
+
+CREATE TABLE Vacancies(
+Number_of_Vacancies int,
+Position_Id INT NOT NULL PRIMARY KEY,
+Pay int
+);
